@@ -1,0 +1,11 @@
+,Model_A,Model_B,Statistic,P_Value,Bonferroni_P,Reject_H0
+0,ridge,rfr,0.0,0.0625,0.625,False
+1,ridge,lgbm,0.0,0.0625,0.625,False
+2,ridge,xgb,1.0,0.125,1.0,False
+3,ridge,cat,0.0,0.0625,0.625,False
+4,rfr,lgbm,0.0,0.0625,0.625,False
+5,rfr,xgb,0.0,0.0625,0.625,False
+6,rfr,cat,1.0,0.125,1.0,False
+7,lgbm,xgb,6.0,0.8125,1.0,False
+8,lgbm,cat,0.0,0.0625,0.625,False
+9,xgb,cat,0.0,0.125,1.0,False
