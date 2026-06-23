@@ -17,12 +17,14 @@ def wandb_login():
 
     global WANDB_INIT
 
+    if WANDB_INIT:
+        return
+
     wandb.login(key=WANDB_KEY)
 
     wandb.init(
         project="CampusWatt",
-        name="CampusWatt-Inference-Results",
-        reinit=True
+        name="CampusWatt-Inference-Results"
     )
 
     WANDB_INIT = True
@@ -60,7 +62,16 @@ def log_to_wandb(payload):
 
         r2 = (
             float(r2_score(y_true, y_pred))
-            if len(y_true) > 0 else 0.0
+            if len(y_true) > 1 else 0.0
+        )
+
+        latency = float(
+            payload.get("time", 0.0)
+        )
+
+        throughput = (
+            1 / max(latency / 1000.0, 1e-6)
+            if latency > 0 else 0.0
         )
 
         wandb.log({
@@ -69,10 +80,25 @@ def log_to_wandb(payload):
             "RMSE": rmse,
             "MAE": mae,
             "R2": r2,
-            "Inference_Time": float(
-                payload.get("time", 0.0)
+            "Inference_Time": latency,
+            "Throughput": throughput,
+            "Prediction_Mean": (
+                float(np.mean(y_pred))
+                if len(y_pred) > 0 else 0.0
+            ),
+            "Prediction_STD": (
+                float(np.std(y_pred))
+                if len(y_pred) > 0 else 0.0
             )
         })
 
     except Exception as e:
+
+        try:
+            wandb.log({
+                "error": str(e)
+            })
+        except Exception:
+            pass
+
         print(f"[WANDB ERROR] {e}")
