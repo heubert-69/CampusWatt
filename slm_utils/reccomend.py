@@ -2,7 +2,7 @@ from transformers import pipeline
 
 generator = pipeline(
     "text-generation",
-    model="./models/phi3_energy"
+    repo_type="./models/phi3_energy"
 )
 
 def generate_recommendation(
