@@ -2,14 +2,25 @@
 import pandas as pd
 import numpy as np
 from pydantic import BaseModel
-from datetime import datetime
+from typing import Optional
+from datetime import datetime, timedelta
 import jwt
+from dotenv import load_dotenv
+import os
+
+#Global Variables
+load_dotenv()
+
+SECRET_KEY=os.getenv("SECRET_KEY")
+ALGORITHM=os.getenv("ALGORITHM")
+
+
 
 def create_token(data: dict):
 
     payload = {
         "data": data,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=6)
+        "exp": datetime.utcnow() + timedelta(hours=6)
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -26,8 +37,6 @@ class LoginRequest(BaseModel):
 
 # For Prediction reqest
 class PredictionRequest(BaseModel):
-
-    timestamp: datetime
 
     building_id: int
     meter: int
