@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile — CampusEnergy</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .app-grid{ display:grid; grid-template-columns: 220px 1fr; gap:32px; padding: 40px 0 80px; }
+  .profile-head{ display:flex; gap:28px; align-items:flex-start; margin-bottom:30px; }
+  .avatar-photo{ width:140px; height:140px; border-radius:18px; background:#fff; display:grid; place-items:center; color:#1b2138; flex-shrink:0; }
+  .avatar-photo svg{ width:64px; height:64px; }
+  .profile-name{ font-size:1.9rem; color:var(--mint); margin-bottom:10px; }
+  .meta-row{ font-size:0.98rem; margin-bottom:6px; color:var(--text); }
+  .meta-row b{ color:var(--text-dim); font-weight:500; }
+  .about-box{ padding:24px; min-height:140px; }
+  .about-box h3{ font-size:1rem; margin-bottom:14px; }
+  @media (max-width:880px){ .app-grid{ grid-template-columns:1fr; } .profile-head{ flex-direction:column; align-items:center; text-align:center; } }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div id="site-topbar"></div>
+
+<main id="main" class="page-enter">
+  <div class="shell app-grid">
+    <aside class="sidebar reveal is-visible">
+      <div class="side-link active" data-tab="profile">Profile</div>
+      <a href="posts.html"><div class="side-link" data-tab="posts">Posts</div></a>
+    </aside>
+
+    <section id="profileContent">
+      <div class="skel" style="height:140px; border-radius:18px; margin-bottom:30px;"></div>
+      <div class="skel" style="height:160px; border-radius:18px;"></div>
+    </section>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="shared/api.js"></script>
+<script src="shared/app.js"></script>
+<script>
+  CE.initAll({
+    topbar: { active: '' },
+    onReady: loadProfile,
+  });
+
+  async function loadProfile() {
+    const user = await CampusEnergyAPI.getCurrentUser();
+    if (!user) {
+      CE.toast('Sign in to view your profile.', 'error');
+      setTimeout(() => (window.location.href = 'login.html'), 900);
+      return;
+    }
+
+    const isFaculty = user.userType === 'Faculty';
+    const detailRows = isFaculty
+      ? `<p class="meta-row"><b>Position:</b> ${user.position || '—'}</p>`
+      : `<p class="meta-row"><b>Course:</b> ${user.course || '—'}</p>`;
+
+    const content = document.getElementById('profileContent');
+    content.innerHTML = `
+      <div class="profile-head reveal is-visible">
+        <div class="avatar-photo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        </div>
+        <div>
+          <h1 class="profile-name">${user.username}</h1>
+          <p class="meta-row"><b>Age:</b> ${user.age ?? '—'}</p>
+          <p class="meta-row"><b>User Type:</b> ${user.userType}</p>
+          ${detailRows}
+        </div>
+      </div>
+      <div class="panel about-box reveal is-visible">
+        <h3>About</h3>
+        <p>${user.about || 'No bio yet.'}</p>
+      </div>
+    `;
+  }
+</script>
+</body>
+</html>

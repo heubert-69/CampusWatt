@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — CampusEnergy</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .auth-wrap{ min-height: calc(100vh - 78px); display:grid; place-items:center; padding: 40px 20px 70px; }
+  .auth-card{ width:100%; max-width:440px; padding: 44px 40px 36px; text-align:center; }
+  .auth-card h1{ font-size:1.5rem; letter-spacing:.04em; margin-bottom:30px; }
+  .auth-foot{ margin-top:22px; font-size:0.9rem; color:var(--text-dim); }
+  .auth-foot a{ color:var(--mint); font-weight:600; }
+  .auth-foot a:hover{ text-decoration:underline; }
+  .mock-hint{ margin-top:20px; font-size:0.78rem; color:var(--text-faint); font-family:var(--f-mono); line-height:1.7; }
+  .mock-hint b{ color:var(--text-dim); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div id="site-topbar"></div>
+
+<main id="main" class="page-enter">
+  <div class="auth-wrap">
+    <form class="panel auth-card reveal is-visible" id="loginForm" novalidate>
+      <h1>SIGN IN</h1>
+
+      <div class="field" id="emailField">
+        <label for="email">Email Address</label>
+        <div class="field-wrap">
+          <input type="email" id="email" name="email" placeholder="you@campusenergy.edu" autocomplete="email" required>
+        </div>
+        <p class="field-error">Enter a valid email address.</p>
+      </div>
+
+      <div class="field" id="passwordField">
+        <label for="password">Password</label>
+        <div class="field-wrap">
+          <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <p class="field-error">Password is required.</p>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+        <span class="btn-label">Sign in</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+
+      <p class="auth-foot">Don't have an account? <a href="signup.html">Sign up</a></p>
+      <p class="mock-hint">Try it: <b>user@campusenergy.edu</b> or <b>prof@campusenergy.edu</b>, any password.</p>
+    </form>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="shared/api.js"></script>
+<script src="shared/app.js"></script>
+<script>
+  CE.initAll({ topbar: {} });
+
+  const form = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const emailField = document.getElementById('emailField');
+    const passField = document.getElementById('passwordField');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    const emailOk = isEmail(email);
+    const passOk = password.length > 0;
+    CE.validateField(emailField, emailOk, 'Enter a valid email address.');
+    CE.validateField(passField, passOk, 'Password is required.');
+    if (!emailOk || !passOk) return;
+
+    CE.setButtonLoading(submitBtn, true);
+    try {
+      await CampusEnergyAPI.login({ email, password });
+      CE.toast('Signed in — redirecting to your profile.', 'success', 1400);
+      setTimeout(() => (window.location.href = 'profile.html'), 700);
+    } catch (err) {
+      CE.toast(err.message || 'Could not sign in.', 'error');
+      CE.validateField(passField, false, err.message || 'Email or password is incorrect.');
+    } finally {
+      CE.setButtonLoading(submitBtn, false);
+    }
+  });
+</script>
+</body>
+</html>

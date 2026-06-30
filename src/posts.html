@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Posts — CampusEnergy</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .app-grid{ display:grid; grid-template-columns: 220px 1fr; gap:32px; padding: 40px 0 80px; }
+  .post-row{
+    display:flex; justify-content:space-between; align-items:center; gap:20px;
+    padding: 24px 28px; margin-bottom:18px; cursor:pointer;
+  }
+  .post-row h3{ font-size:1.08rem; margin-bottom:6px; }
+  .post-row .meta{ font-size:0.82rem; color:var(--text-faint); font-family:var(--f-mono); }
+  .post-row .arrow{ color:var(--text-faint); transition: transform var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+  .post-row:hover .arrow{ transform: translateX(4px); color:var(--mint); }
+  .post-skel{ height:90px; border-radius:18px; margin-bottom:18px; }
+  @media (max-width:880px){ .app-grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div id="site-topbar"></div>
+
+<main id="main" class="page-enter">
+  <div class="shell app-grid">
+    <aside class="sidebar reveal is-visible">
+      <a href="profile.html"><div class="side-link" data-tab="profile">Profile</div></a>
+      <div class="side-link active" data-tab="posts">Posts</div>
+    </aside>
+
+    <section>
+      <div id="postsList">
+        <div class="panel skel post-skel"></div>
+        <div class="panel skel post-skel"></div>
+        <div class="panel skel post-skel"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="shared/api.js"></script>
+<script src="shared/app.js"></script>
+<script>
+  CE.initAll({ topbar: { active: '' }, onReady: loadPosts });
+
+  async function loadPosts() {
+    const posts = await CampusEnergyAPI.getPosts();
+    const list = document.getElementById('postsList');
+    list.innerHTML = posts.map((p, i) => `
+      <article class="panel post-row card-hover reveal" style="--i:${i}" onclick="location.href='post.html?id=${p.id}'">
+        <div>
+          <h3>${p.title}</h3>
+          <span class="meta">${p.author} · ${p.date}</span>
+        </div>
+        <span class="arrow">→</span>
+      </article>
+    `).join('');
+    CE.initRevealOnScroll(list);
+    list.querySelectorAll('.reveal').forEach(el => el.classList.add('is-visible'));
+  }
+</script>
+</body>
+</html>
