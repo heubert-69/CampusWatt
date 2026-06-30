@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Us — CampusEnergy</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .about-hero{ padding: 90px 0 50px; max-width:720px; }
+  .about-hero h1{ font-size: clamp(2.1rem, 3.6vw, 3rem); margin: 16px 0 18px; }
+  .timeline{ margin: 60px 0 90px; }
+  .t-row{ display:grid; grid-template-columns: 90px 1fr; gap:28px; padding: 28px 0; border-top:1px solid var(--line); }
+  .t-row:last-child{ border-bottom:1px solid var(--line); }
+  .t-row .yr{ font-family:var(--f-mono); color:var(--mint); font-weight:600; }
+  .t-row h3{ font-size:1.1rem; margin-bottom:8px; }
+  .team-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-bottom:90px; }
+  .team-card{ padding:26px; text-align:left; }
+  .team-card .face{ width:56px; height:56px; border-radius:50%; background: var(--bg-input); display:grid; place-items:center; margin-bottom:16px; color:var(--mint); }
+  .team-card h4{ margin-bottom:4px; }
+  .team-card span{ font-size:0.85rem; color:var(--text-faint); }
+  @media (max-width:880px){ .team-grid{ grid-template-columns:1fr; } .t-row{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div id="site-topbar"></div>
+
+<main id="main" class="page-enter">
+  <div class="shell about-hero">
+    <span class="eyebrow">About CampusEnergy</span>
+    <h1>Built by students who got tired of guessing what the campus bill was paying for.</h1>
+    <p style="font-size:1.02rem;">CampusEnergy started as a sustainability club side-project: pull meter readings off the facilities API, plot them, and ask why the library used more power on a Sunday than a Wednesday. It grew into a shared place for the whole campus to read and write about how power gets used.</p>
+  </div>
+
+  <div class="shell timeline">
+    <div class="t-row reveal" style="--i:0">
+      <div class="yr">2024</div>
+      <div><h3>First meter feed connected</h3><p>A single building — the library — wired into a dashboard for a class project.</p></div>
+    </div>
+    <div class="t-row reveal" style="--i:1">
+      <div class="yr">2025</div>
+      <div><h3>Posts and profiles launched</h3><p>Students and faculty could finally publish their own readings and notes, not just view a chart.</p></div>
+    </div>
+    <div class="t-row reveal" style="--i:2">
+      <div class="yr">2026</div>
+      <div><h3>Campus-wide rollout</h3><p>214 buildings reporting, with predictive notes flagging unusual draw before it becomes a fault.</p></div>
+    </div>
+  </div>
+
+  <div class="shell">
+    <span class="eyebrow">The people behind it</span>
+    <h2 style="font-size:1.8rem; margin:14px 0 30px;">A small, mostly-student team</h2>
+    <div class="team-grid">
+      <div class="panel team-card card-hover reveal" style="--i:0">
+        <div class="face"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>
+        <h4>User</h4>
+        <span>BS IT · Student maintainer</span>
+      </div>
+      <div class="panel team-card card-hover reveal" style="--i:1">
+        <div class="face"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>
+        <h4>User2</h4>
+        <span>Professor · Faculty advisor</span>
+      </div>
+      <div class="panel team-card card-hover reveal" style="--i:2">
+        <div class="face"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>
+        <h4>Facilities team</h4>
+        <span>Meter data &amp; maintenance</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="shared/api.js"></script>
+<script src="shared/app.js"></script>
+<script>
+  CE.initAll({ topbar: { active: 'about' } });
+</script>
+</body>
+</html>

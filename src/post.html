@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post — CampusEnergy</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .post-grid{ display:grid; grid-template-columns: 280px 1fr; gap:40px; padding: 40px 0 90px; }
+  .meta-panel{ display:flex; flex-direction:column; gap:26px; }
+  .meta-panel .label{ font-size:0.92rem; color:var(--mint); font-weight:600; margin-bottom:6px; }
+  .meta-panel .value{ font-size:1.05rem; }
+  .meta-panel .author-link{ text-decoration:underline; cursor:pointer; }
+  .chart-title{ font-size:1.15rem; margin-bottom:18px; }
+  .chart-panel{ padding:26px 30px 18px; }
+  .insight-box{ margin-top:20px; padding:22px 26px; font-size:0.96rem; }
+  .chart-skel{ height:340px; border-radius:16px; }
+  .axis-label{ font-family: var(--f-mono); fill: var(--text-faint); font-size: 11px; }
+  .grid-line{ stroke: var(--line); stroke-width:1; }
+  .data-num{ font-family: var(--f-mono); font-weight:700; fill: var(--text); font-size:13px; }
+  .data-pct{ font-family: var(--f-mono); fill: var(--text-faint); font-size:10.5px; }
+  .point{ fill: var(--mint); }
+  .point-ring{ fill: none; stroke: var(--mint); stroke-width:1.5; opacity:0; }
+  @media (max-width:880px){ .post-grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div id="site-topbar"></div>
+
+<main id="main" class="page-enter">
+  <div class="shell post-grid" id="postContent">
+    <div class="skel" style="height:220px; border-radius:18px;"></div>
+    <div class="skel chart-skel"></div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="shared/api.js"></script>
+<script src="shared/app.js"></script>
+<script>
+  CE.initAll({ topbar: { active: '' }, onReady: loadPost });
+
+  function buildChart(values) {
+    const W = 660, H = 320, padL = 50, padR = 20, padT = 40, padB = 30;
+    const max = Math.max(...values) * 1.18;
+    const total = values.reduce((a,b)=>a+b,0);
+    const stepX = (W - padL - padR) / (values.length - 1);
+    const yFor = (v) => H - padB - (v / max) * (H - padT - padB);
+    const xFor = (i) => padL + i * stepX;
+
+    const pts = values.map((v,i) => [xFor(i), yFor(v)]);
+    const path = pts.map((p,i) => (i===0 ? `M${p[0]} ${p[1]}` : ` L${p[0]} ${p[1]}`)).join('');
+
+    const gridLines = [0,0.25,0.5,0.75,1].map(f => {
+      const y = padT + f * (H - padT - padB);
+      const val = Math.round(max * (1 - f));
+      return `<line class="grid-line" x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}"/>
+              <text class="axis-label" x="${padL-12}" y="${y+4}" text-anchor="end">${val}</text>`;
+    }).join('');
+
+    const len = path.length * 8; // rough overestimate for dasharray safety
+    const dots = pts.map(([x,y], i) => `
+      <g style="animation: dotIn 420ms var(--ease-spring) both; animation-delay:${1400 + i*70}ms;">
+        <circle class="point" cx="${x}" cy="${y}" r="5"/>
+        <text class="data-num" x="${x}" y="${y - 26}" text-anchor="middle">${values[i]}</text>
+        <text class="data-pct" x="${x}" y="${y - 14}" text-anchor="middle">${((values[i]/total)*100).toFixed(1)}%</text>
+      </g>`).join('');
+
+    return `
+    <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" fill="none">
+      <defs>
+        <linearGradient id="lineGrad" x1="0" y1="0" x2="${W}" y2="0">
+          <stop offset="0" stop-color="#7dd3fc"/>
+          <stop offset="1" stop-color="#5eead4"/>
+        </linearGradient>
+        <style>
+          @keyframes dotIn{ from{ opacity:0; transform: translateY(6px); } to{ opacity:1; transform:none; } }
+          .draw-path{ stroke-dasharray: 2600; stroke-dashoffset: 2600; animation: drawPath 1.5s cubic-bezier(.16,.8,.3,1) forwards .15s; }
+          @keyframes drawPath{ to{ stroke-dashoffset:0; } }
+        </style>
+      </defs>
+      ${gridLines}
+      <path class="draw-path" d="${path}" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      ${dots}
+    </svg>`;
+  }
+
+  async function loadPost() {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id') || 'p1';
+    const post = await CampusEnergyAPI.getPost(id);
+
+    const target = document.getElementById('postContent');
+    target.innerHTML = `
+      <aside class="panel meta-panel reveal is-visible" style="padding:28px;">
+        <div>
+          <div class="label">Post Title:</div>
+          <div class="value">${post.title}</div>
+        </div>
+        <div>
+          <div class="label">Post Author:</div>
+          <div class="value author-link" onclick="location.href='profile.html'">${post.author}</div>
+        </div>
+        <div>
+          <div class="label">Date Posted:</div>
+          <div class="value">${post.date}</div>
+        </div>
+      </aside>
+
+      <div>
+        <h2 class="chart-title">The Campus's kWh consumption</h2>
+        <div class="panel chart-panel reveal is-visible">${buildChart(post.data)}</div>
+        <div class="panel insight-box reveal is-visible">${post.insight}</div>
+      </div>
+    `;
+  }
+</script>
+</body>
+</html>

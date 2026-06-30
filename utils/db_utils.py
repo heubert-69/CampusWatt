@@ -1,19 +1,24 @@
 import psycopg
 import os
+from werkzeug.security import generate_password_hash
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_PASSWORD = os.getenv("db_password")
 DB_USER = os.getenv("db_user")
 
 DB_INITIALIZED = False
-
+DB_CONNECTION = None
 
 async def init_db():
 
     global DB_INITIALIZED
+    global DB_CONNECTION
 
     if DB_INITIALIZED:
         print("[DB] Already initialized")
-        return
+        return DB_CONNECTION
 
     db = await psycopg.AsyncConnection.connect(
         host="localhost",
@@ -86,8 +91,128 @@ async def init_db():
 
     await db.commit()
 
+    DB_CONNECTION = db
     DB_INITIALIZED = True
 
     print("[DB] Initialized")
 
-    return db
+    return DB_CONNECTION
+
+
+async def user_retrieval(username: str):
+
+    db = await init_db()
+
+    async with db.cursor() as cursor:
+
+        await cursor.execute(
+            """
+            SELECT
+                id,
+                username,
+                email,
+                password_hash
+            FROM users
+            WHERE username = %s
+            """,
+            (username,)
+        )
+
+        row = await cursor.fetchone()
+
+    await db.close()
+
+    if row is None:
+        return None
+
+    return {
+        "id": row[0],
+        "username": row[1],
+        "email": row[2],
+        "password_hash": row[3]
+    }
+
+
+async def create_user_db(
+    username: str,
+    email: str,
+    password: str
+):
+
+    db = await init_db()
+
+    password_hash = generate_password_hash(password)
+
+    async with db.cursor() as cursor:
+
+        await cursor.execute(
+            """
+            INSERT INTO users(
+                username,
+                email,
+                password_hash
+            )
+            VALUES(%s, %s, %s)
+            RETURNING id
+            """,
+            (
+                username,
+                email,
+                password_hash
+            )
+        )
+
+        user_id = await cursor.fetchone()
+
+    await db.commit()
+    await db.close()
+
+    return user_id[0]
+
+#Sanity Check
+print("DB_USER =", DB_USER)
+print("DB_PASSWORD_SET =", DB_PASSWORD is not None)
+
+
+
+
+
+async def save_prediction_result(
+    model_name,
+    input_data,
+    prediction_output,
+    explanation="",
+    confidence_score=None,
+    inference_time_ms=None,
+    has_error=False
+):
+
+    db = await init_db()
+
+    async with db.cursor() as cursor:
+
+        await cursor.execute(
+            """
+            INSERT INTO prediction_results(
+                model_name,
+                input_data,
+                prediction_output,
+                explanation,
+                confidence_score,
+                inference_time_ms,
+                has_error
+            )
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
+            """,
+            (
+                model_name,
+                psycopg.types.json.Jsonb(input_data),
+                psycopg.types.json.Jsonb(prediction_output),
+                explanation,
+                confidence_score,
+                inference_time_ms,
+                has_error
+            )
+        )
+
+    await db.commit()

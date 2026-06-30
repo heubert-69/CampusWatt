@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — CampusEnergy</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .auth-wrap{ min-height: calc(100vh - 78px); display:grid; place-items:center; padding: 40px 20px 70px; }
+  .auth-card{ width:100%; max-width:460px; padding: 44px 40px 36px; text-align:center; }
+  .auth-card h1{ font-size:1.5rem; letter-spacing:.04em; margin-bottom:30px; }
+  .auth-foot{ margin-top:22px; font-size:0.9rem; color:var(--text-dim); }
+  .auth-foot a{ color:var(--mint); font-weight:600; }
+  .auth-foot a:hover{ text-decoration:underline; }
+  .strength{ height:4px; border-radius:4px; background:var(--bg-input); margin-top:10px; overflow:hidden; }
+  .strength-bar{ height:100%; width:0%; border-radius:4px; transition: width var(--t-med) var(--ease), background var(--t-med) var(--ease); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div id="site-topbar"></div>
+
+<main id="main" class="page-enter">
+  <div class="auth-wrap">
+    <form class="panel auth-card reveal is-visible" id="signupForm" novalidate>
+      <h1>SIGN UP</h1>
+
+      <div class="field" id="usernameField">
+        <label for="username">Username</label>
+        <div class="field-wrap"><input id="username" name="username" placeholder="e.g. jane_doe" autocomplete="username" required></div>
+        <p class="field-error">Pick a username (3+ characters).</p>
+      </div>
+
+      <div class="field" id="emailField">
+        <label for="email">Email Address</label>
+        <div class="field-wrap"><input type="email" id="email" name="email" placeholder="you@campusenergy.edu" autocomplete="email" required></div>
+        <p class="field-error">Enter a valid email address.</p>
+      </div>
+
+      <div class="field" id="passwordField">
+        <label for="password">Password</label>
+        <div class="field-wrap"><input type="password" id="password" name="password" placeholder="••••••••" autocomplete="new-password" required></div>
+        <div class="strength"><div class="strength-bar" id="strengthBar"></div></div>
+        <p class="field-error">Use at least 8 characters.</p>
+      </div>
+
+      <div class="field" id="confirmField">
+        <label for="confirm">Confirm Password</label>
+        <div class="field-wrap"><input type="password" id="confirm" name="confirm" placeholder="••••••••" autocomplete="new-password" required></div>
+        <p class="field-error">Passwords do not match.</p>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+        <span class="btn-label">Sign up</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+
+      <p class="auth-foot">Already have an account? <a href="login.html">Sign in</a></p>
+    </form>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="shared/api.js"></script>
+<script src="shared/app.js"></script>
+<script>
+  CE.initAll({ topbar: {} });
+
+  const form = document.getElementById('signupForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const passwordInput = document.getElementById('password');
+  const strengthBar = document.getElementById('strengthBar');
+
+  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  passwordInput.addEventListener('input', () => {
+    const v = passwordInput.value;
+    let score = 0;
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const pct = [0, 28, 55, 80, 100][score];
+    const colors = ['#fb7185','#fb7185','#fbbf68','#5eead4','#2dd4bf'];
+    strengthBar.style.width = pct + '%';
+    strengthBar.style.background = colors[score];
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = {
+      username: document.getElementById('usernameField'),
+      email: document.getElementById('emailField'),
+      password: document.getElementById('passwordField'),
+      confirm: document.getElementById('confirmField'),
+    };
+    const v = {
+      username: document.getElementById('username').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+      confirm: document.getElementById('confirm').value,
+    };
+
+    const checks = {
+      username: v.username.length >= 3,
+      email: isEmail(v.email),
+      password: v.password.length >= 8,
+      confirm: v.confirm.length > 0 && v.confirm === v.password,
+    };
+    Object.entries(checks).forEach(([key, ok]) => CE.validateField(f[key], ok));
+    if (Object.values(checks).some((ok) => !ok)) return;
+
+    CE.setButtonLoading(submitBtn, true);
+    try {
+      await CampusEnergyAPI.signup({ username: v.username, email: v.email, password: v.password, confirmPassword: v.confirm });
+      CE.toast('Account created — welcome to CampusEnergy.', 'success', 1400);
+      setTimeout(() => (window.location.href = 'profile.html'), 700);
+    } catch (err) {
+      CE.toast(err.message || 'Could not create your account.', 'error');
+    } finally {
+      CE.setButtonLoading(submitBtn, false);
+    }
+  });
+</script>
+</body>
+</html>

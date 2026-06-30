@@ -6,10 +6,17 @@ import joblib
 import pandas as pd
 from pathlib import Path
 import jwt
+from datetime import datetime, timedelta
 import datetime
 from data_utils import *
 from db_utils import *
 from input_utils import *
+from slm_utils.reccomend import *
+import time
+import asyncio
+from warnings import filterwarnings
+
+filterwarnings("ignore")
 
 app = FastAPI()
 
@@ -51,14 +58,16 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme
 model = joblib.load("models/rfr_model.pkl")
 #causal_model = joblib.load("models/causal_models/model.pkl") //later
 
-@app.post("/predict")
-def predict(request: PredictionRequest, user=Depends(verify_token)):
+print(model.feature_names_in_)
 
+@app.post("/predict")
+async def predict(request: PredictionRequest, user=Depends(verify_token)):
+    start_time = time.perf_counter()
     # JSON → DF
     df = pd.DataFrame([request.model_dump()])
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    #df["timestamp"] = pd.to_datetime(df["timestamp"]) // not required due to the datetime being the index of the data
 
-    df = feature_engineer_energy(df)
+    df = feature_engineer_engineer(df)
 
     # Prediction
     y_pred = model.predict(df)
@@ -68,11 +77,29 @@ def predict(request: PredictionRequest, user=Depends(verify_token)):
         if hasattr(model, "predict_proba")
         else None
     )
+    end_time = time.perf_counter()
 
-    return {
-        "prediction": float(y_pred[0]),
-        "probability": float(y_prob[0]) if y_prob is not None else None
+    inference_time_ms = (
+        end_time - start_time
+    ) * 1000
+
+    prediction_value = float(y_pred[0])
+
+    response = {
+        "prediction": prediction_value,
+        "probability": None
     }
+
+    await save_prediction_result(
+        model_name="rfr.pkl",
+        input_data=request.model_dump(mode="json"),
+        prediction_output=response,
+        explanation="Random Forest Energy Forecast",
+        confidence_score=None,
+        inference_time_ms=int(inference_time_ms)
+    )
+
+    return response
 
 
 @app.post("/causal_predict")
@@ -99,19 +126,30 @@ def causal_predict(request: PredictionRequest, user=Depends(verify_token)):
     }
 
 @app.post("/login")
-def login(request: LoginRequest):
+async def login(request: LoginRequest):
 
-    user_record = user_retrieval(request.username)
+    user_record = await user_retrieval(
+        request.username
+    )
 
     if not user_record:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials"
+        )
 
     password_hash = user_record["password_hash"]
 
-    valid = check_password_hash(password_hash, request.password)
+    valid = check_password_hash(
+        password_hash,
+        request.password
+    )
 
     if not valid:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials"
+        )
 
     token = create_token({
         "username": request.username
@@ -123,5 +161,33 @@ def login(request: LoginRequest):
         "token_type": "bearer"
     }
 
+@app.get("/create_user")
+async def create_user(new_user: RequestUser):
+    password_hash = generate_password_hash(new_user.password)
 
-#all for now
+    await create_user_db(
+        new_user.username,
+        new_user.email,
+        password_hash=password_hash
+    )
+
+    return {
+        "status": "success",
+        "message": "User created successfully."
+    }
+
+
+@app.get("/recommend")
+async def slm_recommend(request: SLMSchema):
+    await reccomend(
+        request.prediction,
+        request.causal_effect,
+        request.confidence,
+        request.retrieved_docs
+    )
+
+
+    return {
+        "status": "success",
+        "message": "Reccomendation Distributed successfully"
+    }

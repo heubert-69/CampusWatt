@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusWatt — See where the power goes</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  .hero{ padding: 96px 0 60px; display:grid; grid-template-columns: 1.05fr 0.95fr; gap:60px; align-items:center; }
+  .hero h1{ font-size: clamp(2.4rem, 4.4vw, 3.6rem); line-height:1.08; margin: 18px 0 22px; }
+  .hero p.lead{ font-size:1.08rem; max-width:480px; margin-bottom:34px; }
+  .hero-actions{ display:flex; gap:14px; flex-wrap:wrap; }
+
+  .pulse-card{ position:relative; padding:28px; }
+  .pulse-card .label{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px;}
+  .pulse-card .label span:first-child{ font-family:var(--f-mono); font-size:0.78rem; color:var(--text-faint); letter-spacing:.08em; text-transform:uppercase;}
+  .pulse-card .label .live{ display:flex; align-items:center; gap:6px; font-size:0.78rem; color:var(--mint); font-family:var(--f-mono); }
+  .live-dot{ width:7px; height:7px; border-radius:50%; background:var(--mint); box-shadow:0 0 0 0 rgba(94,234,212,.7); animation: livePulse 1.8s infinite; }
+  @keyframes livePulse{ 0%{ box-shadow:0 0 0 0 rgba(94,234,212,.55);} 70%{ box-shadow:0 0 0 8px rgba(94,234,212,0);} 100%{ box-shadow:0 0 0 0 rgba(94,234,212,0);} }
+  .pulse-svg path.line{ stroke-dasharray: 900; stroke-dashoffset: 900; animation: draw 2.4s var(--ease) forwards .2s; }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+  .pulse-svg circle.tracer{ animation: tracer 2.4s var(--ease) forwards .2s; }
+  @keyframes tracer{ 0%{ opacity:0; } 4%{ opacity:1; } 96%{ opacity:1; } 100%{ opacity:0; } }
+  .pulse-stats{ display:flex; justify-content:space-between; margin-top:18px; }
+  .pulse-stats div{ text-align:left; }
+  .pulse-stats .num{ font-family:var(--f-mono); font-size:1.3rem; font-weight:600; }
+  .pulse-stats .num.mint{ color: var(--mint); }
+  .pulse-stats .sub{ font-size:0.75rem; color:var(--text-faint); }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin: 70px 0; }
+  .stat-box{ padding:28px; text-align:left; }
+  .stat-box .big{ font-family:var(--f-mono); font-size:2.3rem; font-weight:600; color: var(--mint); background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color: transparent; }
+  .stat-box p{ margin-top:8px; font-size:0.9rem; }
+
+  .feature-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin: 24px 0 90px; }
+  .feature{ padding:30px; }
+  .feature .ico{ width:44px; height:44px; border-radius:12px; background:var(--mint-soft); color:var(--mint); display:grid; place-items:center; margin-bottom:18px; }
+  .feature h3{ font-size:1.1rem; margin-bottom:10px; }
+  .feature p{ font-size:0.92rem; }
+
+  .cta-band{ padding: 56px 40px; text-align:center; margin: 0 0 80px; background: linear-gradient(135deg, rgba(94,234,212,.12), rgba(125,211,252,.08)); }
+  .cta-band h2{ font-size:1.9rem; margin-bottom:14px; }
+  .cta-band p{ max-width:480px; margin: 0 auto 26px; }
+
+  @media (max-width: 880px){
+    .hero{ grid-template-columns:1fr; padding-top:48px; }
+    .stat-row, .feature-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div id="site-topbar"></div>
+
+<main id="main" class="page-enter">
+  <div class="shell hero">
+    <div>
+      <span class="eyebrow">Campus power, made visible</span>
+      <h1>See exactly where every <span style="color:var(--mint)">kWh</span> on campus goes.</h1>
+      <p class="lead">CampusWatt turns raw meter data from dorms, labs, and the library into readable stories — so students and faculty can spot waste before it shows up on the bill.</p>
+      <div class="hero-actions">
+        <a href="src/signup.html" class="btn btn-primary">Create an account</a>
+        <a href="src/posts.html" class="btn btn-ghost">Browse posts</a>
+      </div>
+    </div>
+
+    <div class="panel pulse-card reveal">
+      <div class="label">
+        <span>Live · Engineering Building</span>
+        <span class="live"><span class="live-dot"></span> streaming</span>
+      </div>
+      <svg class="pulse-svg" viewBox="0 0 360 120" width="100%" height="120" fill="none">
+        <path class="line" d="M0 80 L30 78 L55 20 L80 95 L110 12 L140 98 L165 60 L190 75 L215 35 L240 90 L265 18 L300 70 L330 50 L360 60"
+          stroke="url(#g1)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle class="tracer" r="4.5" fill="#5eead4">
+          <animateMotion dur="2.4s" begin="0.2s" fill="freeze"
+            path="M0 80 L30 78 L55 20 L80 95 L110 12 L140 98 L165 60 L190 75 L215 35 L240 90 L265 18 L300 70 L330 50 L360 60"/>
+        </circle>
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="360" y2="0">
+            <stop offset="0" stop-color="#7dd3fc"/>
+            <stop offset="1" stop-color="#5eead4"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="pulse-stats">
+        <div><div class="num mint">38.4 kWh</div><div class="sub">current draw</div></div>
+        <div><div class="num">−6.2%</div><div class="sub">vs. last week</div></div>
+        <div><div class="num">A−</div><div class="sub">efficiency grade</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="shell stat-row">
+    <div class="panel stat-box reveal" style="--i:0"><div class="big">214</div><p>Buildings reporting live consumption data across campus.</p></div>
+    <div class="panel stat-box reveal" style="--i:1"><div class="big">12.6k</div><p>Posts and insight notes shared by students and faculty.</p></div>
+    <div class="panel stat-box reveal" style="--i:2"><div class="big">18%</div><p>Average drop in weekend idle load since tracking began.</p></div>
+  </div>
+
+  <div class="shell">
+    <span class="eyebrow">What you can do here</span>
+    <h2 style="font-size:2rem; margin:14px 0 30px;">A shared notebook for campus power use</h2>
+    <div class="feature-grid reveal-stagger">
+      <div class="panel feature card-hover reveal" style="--i:0">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/></svg></div>
+        <h3>Read consumption stories</h3>
+        <p>Every post pairs a real usage graph with plain-language notes on what changed and why.</p>
+      </div>
+      <div class="panel feature card-hover reveal" style="--i:1">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <h3>Track over time</h3>
+        <p>Compare a building's draw week to week and catch drift before it becomes a maintenance ticket.</p>
+      </div>
+      <div class="panel feature card-hover reveal" style="--i:2">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+        <h3>Publish your own findings</h3>
+        <p>Students and faculty can post readings, predictions, and notes for their own building or lab.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="panel cta-band reveal">
+      <h2>Ready to log your first reading?</h2>
+      <p>Sign up with your campus email to start posting and following consumption data.</p>
+      <a href="signup.html" class="btn btn-primary">Get started</a>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="shared/api.js"></script>
+<script src="shared/app.js"></script>
+<script>
+  CE.initAll({ topbar: { active: 'home' } });
+</script>
+</body>
+</html>
