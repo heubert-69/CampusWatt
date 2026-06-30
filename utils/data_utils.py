@@ -51,6 +51,12 @@ class PredictionRequest(BaseModel):
     wind_speed: float
 
 
+#Creating User Account
+class RequestUser(BaseModel):
+    username: str
+    email: str
+    password: str
+
 
 # Requesting to be turned to a dataframe
 def request_to_dataframe(

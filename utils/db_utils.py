@@ -133,7 +133,7 @@ async def user_retrieval(username: str):
     }
 
 
-async def create_user(
+async def create_user_db(
     username: str,
     email: str,
     password: str

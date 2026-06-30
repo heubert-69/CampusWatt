@@ -1,4 +1,7 @@
 from transformers import pipeline
+from warnings import filterwarnings
+
+filterwarnings("ignore")
 
 generator = pipeline(
     "text-generation",
@@ -25,6 +28,8 @@ def generate_recommendation(
     {retrieved_docs}
 
     Give concise building energy recommendations.
+
+    Under the guise of Philipine Energy Context usage.
     """
 
     response = generator(

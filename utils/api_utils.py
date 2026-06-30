@@ -64,7 +64,7 @@ async def predict(request: PredictionRequest, user=Depends(verify_token)):
     df = pd.DataFrame([request.model_dump()])
     #df["timestamp"] = pd.to_datetime(df["timestamp"]) // not required due to the datetime being the index of the data
 
-    #df = feature_engineer_energy(df) //will be restored, i promise.
+    df = feature_engineer_energy(df) //will be restored, i promise.
 
     # Prediction
     y_pred = model.predict(df)
@@ -158,4 +158,17 @@ async def login(request: LoginRequest):
         "token_type": "bearer"
     }
 
-#all for now
+@app.get("/create_user")
+async def create_user(new_user: RequestUser):
+    password_hash = generate_password_hash(new_user.password)
+
+    await create_user_db(
+        new_user.username,
+        new_user.email,
+        password_hash=password_hash
+    )
+
+    return {
+        "status": "success",
+        "message": "User created successfully."
+    }
